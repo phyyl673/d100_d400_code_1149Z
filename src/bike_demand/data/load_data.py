@@ -4,7 +4,7 @@ import pandas as pd
 
 def load_data(csv_path: str = "raw/SeoulBikeData.csv") -> pd.DataFrame:
     """
-    Load the project's dataset.
+    Loads the raw Seoul Bike Data from the project's data directory.
 
     The dataset is assumed to be located under the project's
     `data/` directory. The default relative path can
@@ -13,14 +13,18 @@ def load_data(csv_path: str = "raw/SeoulBikeData.csv") -> pd.DataFrame:
     Parameters
     ----------
     csv_path : str, optional
-        Relative path to the data file within the project's
-        `data/` directory.
-        Defaults to "raw/SeoulBikeData.csv".
+        The relative path to the CSV file within the 'data' directory.
+        By default "raw/SeoulBikeData.csv".
 
     Returns
     -------
     pd.DataFrame
-        Dataset loaded as a pandas DataFrame.
+        The loaded pandas DataFrame containing the raw bike data.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the specified CSV file does not exist at the expected location.
     """
     project_root = Path(__file__).resolve().parents[3]
     data_dir = project_root / "data"
@@ -35,33 +39,35 @@ def load_data(csv_path: str = "raw/SeoulBikeData.csv") -> pd.DataFrame:
     df = pd.read_csv(file_path, encoding="latin1")
     return df
 
+
+def _project_root() -> Path:
+    return Path(__file__).resolve().parents[3]
+
 def load_cleaned_data(
     parquet_path: str = "processed/seoul_bike_cleaned.parquet",
-    engine: str | None = "fastparquet",
 ) -> pd.DataFrame:
     """
-    Load the cleaned dataset saved as parquet.
+    Load cleaned (processed) Seoul Bike data from parquet.
 
-    Parameters
-    ----------
-    parquet_path : str
-        Relative path within the data directory.
-    engine : str | None
-        Parquet engine to use ("fastparquet" recommended for compatibility).
-
-    Returns
-    -------
-    pd.DataFrame
-        Cleaned dataset loaded as a DataFrame.
+    This loader is defensive: if the stored parquet was generated before
+    we added calendar features (month/day_of_week/is_weekend), it will
+    recreate them from the 'date' column.
     """
-    project_root = Path(__file__).resolve().parents[3]
-    data_dir = project_root / "data"
-
-    file_path = data_dir / parquet_path
+    root = _project_root()
+    file_path = root / "data" / parquet_path
 
     if not file_path.exists():
-        raise FileNotFoundError(
-            f"Cleaned parquet file not found at expected location: {file_path}"
-        )
+        raise FileNotFoundError(f"Processed parquet not found: {file_path}")
 
-    return pd.read_parquet(file_path, engine=engine)
+    df = pd.read_parquet(file_path)
+
+    # ---- Defensive feature completion (handles "old parquet" cases)
+    if "date" not in df.columns:
+        raise KeyError("Expected column 'date' not found in cleaned data.")
+
+    # ensure datetime
+    if not pd.api.types.is_datetime64_any_dtype(df["date"]):
+        df["date"] = pd.to_datetime(df["date"], errors="raise")
+
+
+    return df

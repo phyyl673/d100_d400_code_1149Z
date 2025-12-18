@@ -3,12 +3,16 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Optional C-extensions
+*.so
+
 # Distribution / packaging
 build/
 dist/
 *.egg-info/
-.eggs/
+*.egg
 wheels/
+pip-wheel-metadata/
 
 # Unit test / coverage
 .pytest_cache/
@@ -27,11 +31,34 @@ ENV/
 
 # OS
 .DS_Store
+Thumbs.db
 
 # Editor / IDE
 .vscode/
 .idea/
 
-# Project data: ignore temporary/backup artifacts only
-data/raw/*.csv~
-data/processed/*.parquet~
+# Linters / formatters / type checkers caches
+.mypy_cache/
+.ruff_cache/
+.cache/
+
+# Logs / temp files
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Project data
+# Track raw data (small, static, reproducible)
+# Ignore processed / derived data
+data/processed/*
+
+# Keep directory structure and documentation
+!data/raw/
+!data/raw/**
+!data/processed/.gitkeep
+!data/README.md
+
+# Results / outputs (derived, reproducible)
+results/

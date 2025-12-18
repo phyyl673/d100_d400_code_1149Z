@@ -1,2 +1,24 @@
+name: d100_d400_code_1149Z
+channels:
+  - conda-forge
 dependencies:
+  - python = 3.11
+  - numpy
+  - scipy
+  - pandas
+  - scikit-learn
+  - matplotlib
+  - seaborn
+  - pyarrow
+  - lightgbm
+  - jupyterlab
   - pytest
+  - glum
+  - pre-commit
+  - ruff
+  - black
+  - pip
+  - pip:
+      - tqdm
+      - dalex
+
